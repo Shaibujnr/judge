@@ -1,3 +1,12 @@
+"""
+how to use
+----------
+from command line or terminal run
+python judge.py inputfile.in youroutputfile
+
+eg. python judge.py example.in example.out
+"""
+
 import sys
 import re
 import math
@@ -75,7 +84,6 @@ class Drone:
             self.mpl -= product.weight
 
         self.turns += 1
-        print "load successful"
         return self
 
     def deliver(self, order, product, number):
@@ -104,7 +112,6 @@ class Drone:
             self.mpl += product.weight
             order.productTypes.remove(order.productTypes[order.productTypes.index(product.typ)])
             order.number_of_products -= 1
-        print "delivered"
         self.turns += 1
         return self
 
@@ -133,7 +140,6 @@ class Grid:
             wodin = int(wodin)
             pt = int(pt)
             num = int(num)
-            print din, com, wodin, pt, num
             if com == "L":
                 # load from warehouse
                 return self.drones[din].load(self.warehouses[wodin], self.getProduct(pt), num)
@@ -163,7 +169,7 @@ class Grid:
         for line in range(ncom):
             cline = sol.readline()
             cdrone = self.processCommand(cline)
-            print "drone %d has used %d number of turns"%(cdrone.index,cdrone.turns)
+
             if (cdrone.turns > self.turns-1):
                 print "number of turns exceeded"
                 sys.exit()
@@ -207,9 +213,13 @@ def readFile(filename):
 
 
 def main():
+    if(len(sys.argv) != 3):
+        print("command error: input and output file must be supplied")
+        print("eg. |$ python judge.py example.in example.out")
+        sys.exit()
     grid = readFile(sys.argv[1]);
     grid.simulate(sys.argv[2])
-    print(grid.calculateScore())
+    print("your score is %d"%grid.calculateScore())
 
 
 if __name__ == '__main__':
