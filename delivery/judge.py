@@ -48,15 +48,16 @@ class Product:
 
 
 class Drone:
-    def __init__(self, index, x, y, mpl):
+    def __init__(self, index, x, y, mpl,turns):
         self.index = index
         self.x = x
         self.y = y
         self.mpl = mpl
         self.carrying = []
+        self.turns = turns
 
     def load(self, warehouse, product, number):
-        tused = distance(self.x, self.y, warehouse.x, warehouse.y)
+        self.turns += distance(self.x, self.y, warehouse.x, warehouse.y)
         self.x = warehouse.x
         self.y = warehouse.y
         if (warehouse.is_product_available(product, number) == False):
@@ -73,12 +74,12 @@ class Drone:
             warehouse.products[product.typ] -= 1
             self.mpl -= product.weight
 
-        tused += 1
+        self.turns += 1
         print "load successful"
-        return tused
+        return self
 
     def deliver(self, order, product, number):
-        tused = distance(self.x, self.y, order.x, order.y)
+        self.turns += distance(self.x, self.y, order.x, order.y)
         self.x = order.x
         self.y = order.y
         if len(self.carrying) <= 0:
@@ -104,9 +105,8 @@ class Drone:
             order.productTypes.remove(order.productTypes[order.productTypes.index(product.typ)])
             order.number_of_products -= 1
         print "delivered"
-        tused += 1
-        return tused
-
+        self.turns += 1
+        return self
 
 class Grid:
     def __init__(self, rows, cols, turns, drones, warehouses, orders, products):
@@ -156,22 +156,21 @@ class Grid:
         return nocd
 
     def simulate(self, solution):
-        tused = 0
         nocda = 0
         nocdb = 0
         sol = open(solution, "r")
         ncom = int(sol.readline().strip())
         for line in range(ncom):
             cline = sol.readline()
-            tused += self.processCommand(cline)
-            print "%d turns used out of %d"%(tused,self.turns)
-            if (tused > self.turns):
+            cdrone = self.processCommand(cline)
+            print "drone %d has used %d number of turns"%(cdrone.index,cdrone.turns)
+            if (cdrone.turns > self.turns-1):
                 print "number of turns exceeded"
                 sys.exit()
             nocdb = self.getNumberOfCompletedOrders()
             if (nocdb - nocda) == 1:
                 # new order has been completed
-                z = ((self.turns - tused) / self.turns) * 100
+                z = ((self.turns - cdrone.turns) / self.turns) * 100
                 self.scores.append(math.ceil(z))
                 nocda = nocdb
 
@@ -202,7 +201,7 @@ def readFile(filename):
         orders.append(Order(j, odx, ody, nops, optypes))
 
     for dr in range(d):
-        drones.append(Drone(dr, warehouses[0].x, warehouses[0].y, p))
+        drones.append(Drone(dr, warehouses[0].x, warehouses[0].y, p,-1))
 
     return Grid(r, c, t, drones, warehouses, orders, products)
 
